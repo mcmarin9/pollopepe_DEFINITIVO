@@ -3,75 +3,82 @@ session_start();
 
 function home(){
     require_once("modelo/usuarios_modelo.php");
-    
+    // Lógica del programa
     $error = '';
     $usuarios = new Usuarios_modelo();
-
-    /*
-    if(!isset($_SESSION['usuario'])){
-        
+    if(!isset($_SESSION['nombre'])){
+        $nombre = isset($_POST['nombre'])?$_POST['nombre']: '';
+        $clave = isset($_POST['clave'])?$_POST['clave']: '';
+        if($usuarios->login($nombre, $clave)){
+            $_SESSION['nombre'] = $nombre;
+        }else {
+            if($nombre != ''){
+            $error = "Ususario o contraseña no encontrados";
+            }
+        }
     }else {
-         
-    }
-    */
+        if(isset($_POST['borrar'])){
+            $nombre = isset($_POST['nombre'])?$_POST['nombre']: '';
+            
+            if($usuarios->borrar($nombre)) $error = "Borrado correctamente";
+            else $error = "Error al borrar";
+        }
+        
+        elseif(isset($_POST['insertar'])){
+            $nombre = isset($_POST['nombre'])?$_POST['nombre']: '';
+            $clave = isset($_POST['clave'])?$_POST['clave']: '';
+            $edad = isset($_POST['edad'])?$_POST['edad']: '';
+            $correo = isset($_POST['correo'])?$_POST['correo']: '';
 
+            if($usuarios->insertar($nombre, $clave, $edad, $correo)) $error = "Insertado correctamente.";
+            else $error = "Error al insertar.";
+        }
+    }
     $array_usuarios = $usuarios->get_usuarios();
-    require_once("vista/principal_vista.php");
+    require_once("vista/index_vista.php");
 }
 
-function login(){
-    
-    require_once("vista/login_vista.php");
-    require_once("modelo/usuarios_modelo.php");
-    
-
-    $usuarios = new Usuarios_modelo();
-    if(!isset($_SESSION['usuario'])){
-        $usuario = isset($_POST['usuario'])?$_POST['usuario']: '';
-        $clave = isset($_POST['clave'])?$_POST['clave']: '';
-        if($usuarios->login($usuario, $clave)){
-            $_SESSION['usuario'] = $usuario;
-            //$_SESSION['clave'] = $clave; por q esto da error?
-            header("Location: index.php"); //Esto aqui no
-        }else {
-            if($usuario != ''){
-                $error = "Ususario o contraseña no encontrados";
+//ESTAS 2 FUNCIONES NO ME VAN A IR PORQUE NO TENGO COMENTARIOS_MODELO
+function inserta($file){
+    require_once("modelo/comentarios_modelo.php");
+    $datos = new Comentarios_modelo();
+    if ($gestor=fopen($fichero,"r")!==FALSE){
+        while ($linea=fgets($gestor,4096) !== false) {
+            $campos=explode(";",$linea);
+            if (count($campos) == 3) {
+                $titulo=$campos[0];
+                $autor=$campos[1];
+                $campos=$campos[2];
+                if ($datos->insertar($titulo,$autor,$comentario,$_SESSION["nombre"])) {
+                    $error = "Comentario guardado";
+                } else {
+                    $error = "Error al guardar el comentario";
+                }
             }
         }
     }
 }
 
 function gestionar(){
+    require_once("modelo/comentarios_modelo.php"); //No existe comentarios_modelo
+    $error = '';
+    $datos = new Comentarios_modelo();
 
-    require_once("modelo/usuarios_modelo.php");
+    if (isset($_POST["borrar"])) {
+        $nombre = isset($_POST['titulo'])?$_POST['titulo'];
+        if ($datos->borrar($nombre)) {
+            $error = "Borrado correctamente";
+        } else $error = "Error al borrar";
+    } elseif (isset($_POST["insertar"])){
+        if(!empty($_FILES["archivo"]["tmp_name"])){
 
-    $usuarios = new Usuarios_modelo();
-
-
-    if(isset($_POST['insertar'])){
-        console_log("entra al isset insertar");
-        $usuario = isset($_POST['nombre_usuario'])?$_POST['nombre_usuario']: '';
-        $clave = isset($_POST['clave_usuario'])?$_POST['clave_usuario']: '';
-
-        if($usuarios->insertar($usuario, $clave)) $error = "Insertado correctamente.";
-        else $error = "Error al insertar.";
+        }
     }
-    elseif(isset($_POST['borrar'])){
-        $usuario = isset($_POST['usuario'])?$_POST['usuario']: '';
-        
-        if($usuarios->borrar($usuario)) $error = "Borrado correctamente";
-        else $error = "Error al borrar";
-    }
-
-    $array_usuarios = $usuarios->get_usuarios();
-    require_once("vista/gestionar_usuarios_vista.php");
 }
 
 function desconectar(){
-
     session_destroy();
     header("Location: index.php");
-    
 }
 
 ?>
